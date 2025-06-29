@@ -22,6 +22,7 @@ export const handler = async (event) => {
   console.log('Received event:', JSON.stringify(event, null, 2));
   try {
     const restaurants = await getRestaurants(defaultResults);
+    console.log('Restaurants fetched:', restaurants);
     return {
       statusCode: 200,
       body: JSON.stringify(restaurants),

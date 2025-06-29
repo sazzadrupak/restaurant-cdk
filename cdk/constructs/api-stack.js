@@ -1,6 +1,7 @@
-import { Stack } from 'aws-cdk-lib';
+import { Fn, Stack } from 'aws-cdk-lib';
 import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 export class ApiStack extends Stack {
   /**
@@ -11,11 +12,37 @@ export class ApiStack extends Stack {
   constructor(scope, id, props) {
     super(scope, id, props);
 
+    // Create an API Gateway REST API
+    const api = new RestApi(this, `${props.stageName}-MyApi`, {
+      deployOptions: {
+        stageName: props.stageName, // Use the stage name from the context
+      },
+    });
+    const apiLogicalId = this.getLogicalId(api.node.defaultChild);
+
     // Create a Lambda function
-    const getIndexFunction = new Function(this, 'GetIndex', {
+    const getIndexFunction = new NodejsFunction(this, 'GetIndex', {
       runtime: Runtime.NODEJS_20_X,
-      handler: 'get-index.handler',
-      code: Code.fromAsset('functions'),
+      handler: 'handler',
+      entry: 'functions/get-index.mjs', // The entry point for the Lambda function
+      bundling: {
+        commandHooks: {
+          afterBundling(inputDir, outputDir) {
+            // Copy the static files to the output directory
+            return [
+              `mkdir ${outputDir}/static`,
+              `cp ${inputDir}/static/index.html ${outputDir}/static/index.html`,
+            ];
+          },
+          beforeBundling() {},
+          beforeInstall() {},
+        },
+      },
+      environment: {
+        restaurants_api: Fn.sub(
+          `https://\${${apiLogicalId}}.execute-api.\${AWS::Region}.amazonaws.com/${props.stageName}/restaurants`
+        ), // The API Gateway URL for the restaurants endpoint
+      },
     });
 
     // const cfnLambdaFunction = lambdaFunction.node.defaultChild; // that represents the Lambda function in the CloudFormation template. You can then call "overrideLogicalId" on this object to set the exact logical ID.
@@ -31,13 +58,6 @@ export class ApiStack extends Stack {
       },
     });
     props.restaurantsTable.grantReadData(getRestaurantsFunction); //
-
-    // Create an API Gateway REST API
-    const api = new RestApi(this, `${props.stageName}-MyApi`, {
-      deployOptions: {
-        stageName: props.stageName, // Use the stage name from the context
-      },
-    });
 
     // Integrate the Lambda function with the API Gateway
     const getIndexLambdaIntegration = new LambdaIntegration(getIndexFunction);
