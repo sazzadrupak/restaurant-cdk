@@ -1,3 +1,5 @@
+import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import { AwsClient } from 'aws4fetch';
 import fs from 'fs';
 import Mustache from 'mustache';
 
@@ -12,6 +14,14 @@ const days = [
   'Saturday',
 ];
 
+const credentialProvider = fromNodeProviderChain();
+const credentials = await credentialProvider();
+const aws = new AwsClient({
+  accessKeyId: credentials.accessKeyId,
+  secretAccessKey: credentials.secretAccessKey,
+  sessionToken: credentials.sessionToken,
+});
+
 let html;
 
 function loadHtml() {
@@ -25,7 +35,10 @@ function loadHtml() {
 }
 
 const getRestaurants = async () => {
-  const resp = await fetch(restaurantsApiRoot);
+  const resp = await aws.fetch(restaurantsApiRoot);
+  if (!resp.ok) {
+    throw new Error('Failed to fetch restaurants: ' + resp.statusText);
+  }
   return await resp.json();
 };
 

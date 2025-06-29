@@ -1,5 +1,10 @@
 import { Fn, Stack } from 'aws-cdk-lib';
-import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import {
+  AuthorizationType,
+  LambdaIntegration,
+  RestApi,
+} from 'aws-cdk-lib/aws-apigateway';
+import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
@@ -26,6 +31,7 @@ export class ApiStack extends Stack {
       handler: 'handler',
       entry: 'functions/get-index.mjs', // The entry point for the Lambda function
       bundling: {
+        format: 'esm',
         commandHooks: {
           afterBundling(inputDir, outputDir) {
             // Copy the static files to the output directory
@@ -67,6 +73,19 @@ export class ApiStack extends Stack {
     api.root.addMethod('GET', getIndexLambdaIntegration);
     api.root
       .addResource('restaurants')
-      .addMethod('GET', getRestaurantsLambdaIntegration);
+      .addMethod('GET', getRestaurantsLambdaIntegration, {
+        authorizationType: AuthorizationType.IAM,
+      });
+
+    const apiInvokePolicy = new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ['execute-api:Invoke'],
+      resources: [
+        Fn.sub(
+          `arn:aws:execute-api:\${AWS::Region}:\${AWS::AccountId}:\${${apiLogicalId}}/${props.stageName}/GET/restaurants`
+        ),
+      ],
+    });
+    getIndexFunction.role?.addToPrincipalPolicy(apiInvokePolicy);
   }
 }
