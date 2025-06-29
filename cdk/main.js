@@ -2,6 +2,7 @@
 
 import { App } from 'aws-cdk-lib';
 import { ApiStack } from './constructs/api-stack.js';
+import { DatabaseStack } from './constructs/database-stack.js';
 
 const app = new App();
 let stageName = app.node.tryGetContext('stageName') || 'dev'; // Default to 'dev' if not specified
@@ -11,4 +12,11 @@ if (!stageName) {
   stageName = 'dev';
 }
 
-new ApiStack(app, `ApiStack-${stageName}`, { stageName });
+const dbStack = new DatabaseStack(app, `DatabaseStack-${stageName}`, {
+  stageName,
+});
+
+new ApiStack(app, `ApiStack-${stageName}`, {
+  stageName,
+  restaurantsTable: dbStack.restaurantsTable,
+});

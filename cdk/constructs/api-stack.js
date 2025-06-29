@@ -12,26 +12,41 @@ export class ApiStack extends Stack {
     super(scope, id, props);
 
     // Create a Lambda function
-    const lambdaFunction = new Function(this, 'HandlerFunction', {
-      runtime: Runtime.NODEJS_18_X,
-      handler: 'handler.hello',
+    const getIndexFunction = new Function(this, 'GetIndex', {
+      runtime: Runtime.NODEJS_20_X,
+      handler: 'get-index.handler',
       code: Code.fromAsset('functions'),
     });
 
-    const cfnLambdaFunction = lambdaFunction.node.defaultChild; // that represents the Lambda function in the CloudFormation template. You can then call "overrideLogicalId" on this object to set the exact logical ID.
-    cfnLambdaFunction.overrideLogicalId('HandlerFunction');
+    // const cfnLambdaFunction = lambdaFunction.node.defaultChild; // that represents the Lambda function in the CloudFormation template. You can then call "overrideLogicalId" on this object to set the exact logical ID.
+    // cfnLambdaFunction.overrideLogicalId('HandlerFunction');
+
+    const getRestaurantsFunction = new Function(this, 'GetRestaurants', {
+      runtime: Runtime.NODEJS_20_X,
+      handler: 'get-restaurants.handler',
+      code: Code.fromAsset('functions'),
+      environment: {
+        default_results: '8', // Default number of results to return
+        table_name: props.restaurantsTable.tableName, // Name of the DynamoDB table
+      },
+    });
+    props.restaurantsTable.grantReadData(getRestaurantsFunction); //
 
     // Create an API Gateway REST API
     const api = new RestApi(this, `${props.stageName}-MyApi`, {
       deployOptions: {
         stageName: props.stageName, // Use the stage name from the context
       },
-      restApiName: 'Hello Service',
-      description: 'This service serves hello world messages.',
     });
 
     // Integrate the Lambda function with the API Gateway
-    const lambdaIntegration = new LambdaIntegration(lambdaFunction);
-    api.root.addMethod('GET', lambdaIntegration); // GET /hello
+    const getIndexLambdaIntegration = new LambdaIntegration(getIndexFunction);
+    const getRestaurantsLambdaIntegration = new LambdaIntegration(
+      getRestaurantsFunction
+    );
+    api.root.addMethod('GET', getIndexLambdaIntegration);
+    api.root
+      .addResource('restaurants')
+      .addMethod('GET', getRestaurantsLambdaIntegration);
   }
 }
