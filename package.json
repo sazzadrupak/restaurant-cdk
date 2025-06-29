@@ -4,6 +4,7 @@
   "bin": {
     "production-ready-serverless-workshop": "bin/production-ready-serverless-workshop.js"
   },
+  "type": "module",
   "scripts": {
     "build": "echo \"The build step is not required when using JavaScript!\" && exit 0",
     "cdk": "cdk",
