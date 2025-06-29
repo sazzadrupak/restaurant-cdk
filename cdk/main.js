@@ -2,6 +2,7 @@
 
 import { App } from 'aws-cdk-lib';
 import { ApiStack } from './constructs/api-stack.js';
+import { CognitoStack } from './constructs/cognito-stack.js';
 import { DatabaseStack } from './constructs/database-stack.js';
 
 const app = new App();
@@ -19,4 +20,8 @@ const dbStack = new DatabaseStack(app, `DatabaseStack-${stageName}`, {
 new ApiStack(app, `ApiStack-${stageName}`, {
   stageName,
   restaurantsTable: dbStack.restaurantsTable,
+});
+
+new CognitoStack(app, `CognitoStack-${stageName}`, {
+  stageName,
 });
