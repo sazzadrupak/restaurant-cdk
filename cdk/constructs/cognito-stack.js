@@ -1,7 +1,7 @@
 import { Stack } from 'aws-cdk-lib';
 import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 
-export class CognitoStack extends Stack {
+class CognitoStack extends Stack {
   constructor(scope, id, props) {
     super(scope, id, props);
 
@@ -40,7 +40,7 @@ export class CognitoStack extends Stack {
     });
 
     // used by the landing page frontend, this would be used to register new users, and support sign-in and sign-out.
-    new UserPoolClient(this, `${props.stageName}-WebUserPoolClient`, {
+    const webUserPoolClient = new UserPoolClient(this, 'WebUserPoolClient', {
       userPool,
       authFlows: {
         userSrp: true,
@@ -56,5 +56,10 @@ export class CognitoStack extends Stack {
       },
       preventUserExistenceErrors: true,
     });
+
+    this.cognitoUserPool = userPool;
+    this.webUserPoolClient = webUserPoolClient;
   }
 }
+
+module.exports = { CognitoStack };

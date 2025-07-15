@@ -1,6 +1,7 @@
 import { Fn, Stack } from 'aws-cdk-lib';
 import {
   AuthorizationType,
+  CfnAuthorizer,
   LambdaIntegration,
   RestApi,
 } from 'aws-cdk-lib/aws-apigateway';
@@ -48,6 +49,8 @@ export class ApiStack extends Stack {
         restaurants_api: Fn.sub(
           `https://\${${apiLogicalId}}.execute-api.\${AWS::Region}.amazonaws.com/${props.stageName}/restaurants`
         ), // The API Gateway URL for the restaurants endpoint
+        cognito_user_pool_id: props.cognitoUserPool.userPoolId,
+        cognito_client_id: props.webUserPoolClient.userPoolClientId,
       },
     });
 
@@ -63,18 +66,49 @@ export class ApiStack extends Stack {
         table_name: props.restaurantsTable.tableName, // Name of the DynamoDB table
       },
     });
-    props.restaurantsTable.grantReadData(getRestaurantsFunction); //
+    props.restaurantsTable.grantReadData(getRestaurantsFunction);
+
+    const searchRestaurantsFunction = new Function(this, 'SearchRestaurants', {
+      runtime: Runtime.NODEJS_20_X,
+      handler: 'search-restaurants.handler',
+      code: Code.fromAsset('functions'),
+      environment: {
+        default_results: '8', // Default number of results to return
+        restaurants_table: props.restaurantsTable.tableName, // Name of the DynamoDB table
+      },
+    });
+    props.restaurantsTable.grantReadData(searchRestaurantsFunction);
 
     // Integrate the Lambda function with the API Gateway
     const getIndexLambdaIntegration = new LambdaIntegration(getIndexFunction);
     const getRestaurantsLambdaIntegration = new LambdaIntegration(
       getRestaurantsFunction
     );
+    const searchRestaurantsLambdaIntegration = new LambdaIntegration(
+      searchRestaurantsFunction
+    );
+
+    const cognitoAuthorizer = new CfnAuthorizer(this, 'CognitoAuthorizer', {
+      name: 'CognitoAuthorizer',
+      type: 'COGNITO_USER_POOLS',
+      restApiId: api.restApiId,
+      providerArns: [props.cognitoUserPool.userPoolArn],
+      identitySource: 'method.request.header.Authorization',
+    });
+
     api.root.addMethod('GET', getIndexLambdaIntegration);
-    api.root
-      .addResource('restaurants')
-      .addMethod('GET', getRestaurantsLambdaIntegration, {
-        authorizationType: AuthorizationType.IAM,
+    const restaurantsResource = api.root.addResource('restaurants');
+
+    restaurantsResource.addMethod('GET', getRestaurantsLambdaIntegration, {
+      authorizationType: AuthorizationType.IAM, // Use IAM authorization for the restaurants endpoint
+    });
+    restaurantsResource
+      .addResource('search')
+      .addMethod('POST', searchRestaurantsLambdaIntegration, {
+        authorizationType: AuthorizationType.COGNITO,
+        authorizer: {
+          authorizerId: cognitoAuthorizer.ref,
+        },
       });
 
     const apiInvokePolicy = new PolicyStatement({
