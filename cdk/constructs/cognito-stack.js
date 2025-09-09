@@ -1,38 +1,36 @@
 import { Stack } from 'aws-cdk-lib';
 import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 
-class CognitoStack extends Stack {
+export class CognitoStack extends Stack {
   constructor(scope, id, props) {
     super(scope, id, props);
 
-    // Create a Cognito User Pool
-    const userPool = new UserPool(this, `${props.stageName}-UserPool`, {
-      userPoolName: `${props.stageName}-UserPool`,
+    const userPool = new UserPool(this, 'UserPool', {
       selfSignUpEnabled: true,
       signInCaseSensitive: false,
-      signInAliases: {
+      autoVerify: {
         email: true,
       },
-      autoVerify: {
+      signInAliases: {
         email: true,
       },
       passwordPolicy: {
         minLength: 8,
         requireDigits: true,
         requireLowercase: true,
-        requireUppercase: true,
         requireSymbols: true,
+        requireUppercase: true,
       },
       standardAttributes: {
-        email: {
-          required: true,
-          mutable: true,
-        },
         givenName: {
           required: true,
           mutable: true,
         },
         familyName: {
+          required: true,
+          mutable: true,
+        },
+        email: {
           required: true,
           mutable: true,
         },
@@ -48,8 +46,8 @@ class CognitoStack extends Stack {
       preventUserExistenceErrors: true,
     });
 
-    // we will use this later to programmatically create new users using the admin flow
-    new UserPoolClient(this, `${props.stageName}-ServerUserPoolClient`, {
+    // we will use this later to programmatically create new users using the admin flow.
+    new UserPoolClient(this, 'ServerUserPoolClient', {
       userPool,
       authFlows: {
         adminUserPassword: true,
@@ -62,4 +60,4 @@ class CognitoStack extends Stack {
   }
 }
 
-module.exports = { CognitoStack };
+// to interact with a Cognito User Pool, you also need to create app clients. Each client can be configured with different authentication flows, token expiration, and which attributes it's allowed to read or write.

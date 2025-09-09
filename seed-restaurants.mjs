@@ -10,7 +10,7 @@ config();
 
 const dynamodbClient = new DynamoDB({
   region: 'us-east-1',
-  credentials: fromIni({ profile: 'rupak-personal' }),
+  credentials: fromIni({ profile: 'main-profile' }),
 });
 const dynamodb = DynamoDBDocumentClient.from(dynamodbClient);
 
@@ -66,7 +66,7 @@ const putReqs = restaurants.map((x) => ({
 
 const cmd = new BatchWriteCommand({
   RequestItems: {
-    [process.env.table_name]: putReqs,
+    [process.env.restaurants_table]: putReqs,
   },
 });
 dynamodb

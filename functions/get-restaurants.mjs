@@ -5,7 +5,7 @@ const dynamodbClient = new DynamoDB();
 const dynamodb = DynamoDBDocumentClient.from(dynamodbClient);
 
 const defaultResults = parseInt(process.env.default_results, 10);
-const tableName = process.env.table_name;
+const tableName = process.env.restaurants_table;
 
 const getRestaurants = async (count) => {
   const resp = await dynamodb.send(

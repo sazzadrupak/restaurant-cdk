@@ -1,5 +1,5 @@
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { AwsClient } from 'aws4fetch';
+import { fromNodeProviderChain } from '@aws-sdk/credential-providers'; // To resolve the current AWS credentials for aws4fetch package, we can use the @aws-sdk/credential-providers utility package from the AWS SDK v3.
+import { AwsClient } from 'aws4fetch'; // This package lets us sign HTTP requests using our AWS credentials. For it to work, it also needs the AWS credentials.
 import fs from 'fs';
 import Mustache from 'mustache';
 
@@ -71,3 +71,19 @@ export const handler = async (event, context) => {
 // With a source map, the size of the bundled function can blow up significantly and significantly impact the cold start time of the function.
 // If the size of the source map is significant, then it can add a noticeable delay to the invocation when the function errors. Because the runtime has to load the source map file at that point to produce a meaningful stack trace. I have seen an erroneous invocation (for a function with lots of dependencies) take several seconds to respond, and that's unacceptable from a user experience POV.
 // So despite its drawbacks, I would recommend not including a source map. Which is also the default behaviour of the "NodejsFunction" construct.
+
+// This @aws-sdk/credential-providers can create a number of different "provider chains" - i.e. a sequence of places where we should look for AWS credentials.
+
+// The one we want is Node.js's default credentials provider chain.
+
+// It follow the same logic as the AWS SDKs and looks for your AWS credentials in a number of places:
+
+// * in the environment variables
+
+// * SSO credentials
+
+// * web identity tokens
+
+// * AWS profiles (both .aws/~config and .aws/~credentials)
+
+// * EC2 instance metadata and ECS metadata
