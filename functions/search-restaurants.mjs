@@ -4,7 +4,7 @@ import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 const dynamodbClient = new DynamoDB();
 const dynamodb = DynamoDBDocumentClient.from(dynamodbClient);
 
-const defaultResults = parseInt(process.env.default_results);
+const defaultResults = parseInt(process.env.default_results || '8', 10);
 const tableName = process.env.restaurants_table;
 
 const findRestaurantsByTheme = async (theme, count) => {
@@ -26,7 +26,7 @@ const findRestaurantsByTheme = async (theme, count) => {
 
 export const handler = async (event, context) => {
   const req = JSON.parse(event.body);
-  const theme = req.theme;
+  const theme = req.theme || 'default';
   const restaurants = await findRestaurantsByTheme(theme, defaultResults);
   const response = {
     statusCode: 200,

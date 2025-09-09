@@ -88,7 +88,7 @@ export class ApiStack extends Stack {
     api.root.addMethod('GET', getIndexLambdaIntegration);
     const restaurantsResource = api.root.addResource('restaurants');
     restaurantsResource.addMethod('GET', getRestaurantsLambdaIntegration, {
-      authorizationType: AuthorizationType.IAM,
+      authorizationType: AuthorizationType.IAM, // Use IAM authorization for the restaurants endpoint
     });
     restaurantsResource
       .addResource('search')

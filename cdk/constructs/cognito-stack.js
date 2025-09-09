@@ -5,6 +5,7 @@ export class CognitoStack extends Stack {
   constructor(scope, id, props) {
     super(scope, id, props);
 
+    // Create a Cognito User Pool
     const userPool = new UserPool(this, 'UserPool', {
       selfSignUpEnabled: true,
       signInCaseSensitive: false,
@@ -47,7 +48,7 @@ export class CognitoStack extends Stack {
     });
 
     // we will use this later to programmatically create new users using the admin flow.
-    new UserPoolClient(this, 'ServerUserPoolClient', {
+    new UserPoolClient(this, `${props.stageName}-ServerUserPoolClient`, {
       userPool,
       authFlows: {
         adminUserPassword: true,
