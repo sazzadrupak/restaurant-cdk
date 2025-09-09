@@ -7,7 +7,7 @@ describe(`When we invoke the GET / endpoint`, () => {
     const resp = await when.we_invoke_get_index();
 
     expect(resp.statusCode).toBe(200);
-    expect(resp.headers['Content-Type']).toBe('text/html; charset=UTF-8');
+    expect(resp.headers['content-type']).toBe('text/html; charset=UTF-8');
     expect(resp.body).toBeDefined();
 
     const $ = load(resp.body);

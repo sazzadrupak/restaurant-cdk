@@ -21,7 +21,7 @@ AWS_PROFILE=$3
 
 if [ -z "$STACK_NAME" ] || [ -z "$REGION" ] || [ -z "$AWS_PROFILE" ]
 then
-    echo "Usage: $0 <STACK_NAME> <REGION>"
+    echo "Usage: $0 <STACK_NAME> <REGION> <AWS_PROFILE>"
     exit 1
 fi
 
@@ -50,6 +50,17 @@ do
                 echo "$KEY=$VALUE" >> .env
             fi
         done
+    fi
+done
+
+# Iterate through the outputs of the CloudFormation stack
+for OUTPUT_KEY in $(aws cloudformation describe-stacks --profile "$AWS_PROFILE"  --stack-name "$STACK_NAME" --region "$REGION" | jq -r '.Stacks[0].Outputs[].OutputKey')
+do
+    OUTPUT_VALUE=$(aws cloudformation describe-stacks --profile "$AWS_PROFILE"  --stack-name "$STACK_NAME" --region "$REGION" | jq -r --arg OUTPUT_KEY "$OUTPUT_KEY" '.Stacks[0].Outputs[] | select(.OutputKey==$OUTPUT_KEY) .OutputValue')
+
+    # Check if the key already exists in the .env file
+    if ! grep -q "^$OUTPUT_KEY=" .env; then
+        echo "$OUTPUT_KEY=$OUTPUT_VALUE" >> .env
     fi
 done
 

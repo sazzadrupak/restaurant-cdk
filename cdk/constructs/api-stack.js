@@ -1,4 +1,4 @@
-import { Fn, Stack } from 'aws-cdk-lib';
+import { CfnOutput, Fn, Stack } from 'aws-cdk-lib';
 import {
   AuthorizationType,
   CfnAuthorizer,
@@ -109,5 +109,14 @@ export class ApiStack extends Stack {
       ],
     });
     getIndexFunction.role?.addToPrincipalPolicy(apiInvokePolicy);
+
+    new CfnOutput(this, 'ApiUrl', {
+      value: api.url,
+      description: 'The URL of the API Gateway',
+    });
+
+    new CfnOutput(this, 'CognitoServerClientId', {
+      value: props.serverUserPoolClient.userPoolClientId,
+    });
   }
 }

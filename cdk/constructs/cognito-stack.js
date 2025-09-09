@@ -48,16 +48,21 @@ export class CognitoStack extends Stack {
     });
 
     // we will use this later to programmatically create new users using the admin flow.
-    new UserPoolClient(this, `${props.stageName}-ServerUserPoolClient`, {
-      userPool,
-      authFlows: {
-        adminUserPassword: true,
-      },
-      preventUserExistenceErrors: true,
-    });
+    const serverUserPoolClient = new UserPoolClient(
+      this,
+      `${props.stageName}-ServerUserPoolClient`,
+      {
+        userPool,
+        authFlows: {
+          adminUserPassword: true,
+        },
+        preventUserExistenceErrors: true,
+      }
+    );
 
     this.cognitoUserPool = userPool;
     this.webUserPoolClient = webUserPoolClient;
+    this.serverUserPoolClient = serverUserPoolClient;
   }
 }
 

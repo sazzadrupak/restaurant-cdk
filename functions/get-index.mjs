@@ -51,7 +51,7 @@ export const handler = async (event, context) => {
   const response = {
     statusCode: 200,
     headers: {
-      'Content-Type': 'text/html; charset=UTF-8',
+      'content-type': 'text/html; charset=UTF-8',
     },
     body: html,
   };
