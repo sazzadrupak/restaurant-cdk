@@ -17,11 +17,10 @@ fi
 # Get CloudFormation stack name and region as arguments
 STACK_NAME=$1
 REGION=$2
-AWS_PROFILE=$3
 
-if [ -z "$STACK_NAME" ] || [ -z "$REGION" ] || [ -z "$AWS_PROFILE" ]
+if [ -z "$STACK_NAME" ] || [ -z "$REGION" ]
 then
-    echo "Usage: $0 <STACK_NAME> <REGION> <AWS_PROFILE>"
+    echo "Usage: $0 <STACK_NAME> <REGION>"
     exit 1
 fi
 
@@ -31,10 +30,10 @@ echo "Running..."
 > .env
 
 # Iterate through Lambda functions created by CloudFormation stack
-for LAMBDA_ARN in $(aws cloudformation describe-stack-resources --profile "$AWS_PROFILE" --stack-name "$STACK_NAME" --region "$REGION" | jq -r '.StackResources[] | select(.ResourceType=="AWS::Lambda::Function") .PhysicalResourceId')
+for LAMBDA_ARN in $(aws cloudformation describe-stack-resources --stack-name "$STACK_NAME" --region "$REGION" | jq -r '.StackResources[] | select(.ResourceType=="AWS::Lambda::Function") .PhysicalResourceId')
 do
     # Fetch function configuration
-    FUNCTION_CONFIG=$(aws lambda get-function-configuration --profile "$AWS_PROFILE" --function-name "$LAMBDA_ARN" --region "$REGION")
+    FUNCTION_CONFIG=$(aws lambda get-function-configuration --function-name "$LAMBDA_ARN" --region "$REGION")
 
     # Check if Environment.Variables exists before processing
     if echo "$FUNCTION_CONFIG" | jq -e '.Environment.Variables' > /dev/null; then
@@ -54,9 +53,9 @@ do
 done
 
 # Iterate through the outputs of the CloudFormation stack
-for OUTPUT_KEY in $(aws cloudformation describe-stacks --profile "$AWS_PROFILE"  --stack-name "$STACK_NAME" --region "$REGION" | jq -r '.Stacks[0].Outputs[].OutputKey')
+for OUTPUT_KEY in $(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$REGION" | jq -r '.Stacks[0].Outputs[].OutputKey')
 do
-    OUTPUT_VALUE=$(aws cloudformation describe-stacks --profile "$AWS_PROFILE"  --stack-name "$STACK_NAME" --region "$REGION" | jq -r --arg OUTPUT_KEY "$OUTPUT_KEY" '.Stacks[0].Outputs[] | select(.OutputKey==$OUTPUT_KEY) .OutputValue')
+    OUTPUT_VALUE=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$REGION" | jq -r --arg OUTPUT_KEY "$OUTPUT_KEY" '.Stacks[0].Outputs[] | select(.OutputKey==$OUTPUT_KEY) .OutputValue')
 
     # Check if the key already exists in the .env file
     if ! grep -q "^$OUTPUT_KEY=" .env; then
