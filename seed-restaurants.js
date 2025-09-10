@@ -8,9 +8,14 @@ import { config } from 'dotenv';
 
 config();
 
+// Use profile locally, environment variables in GitHub Actions
+const credentials = process.env.GITHUB_ACTIONS
+  ? undefined // Use default credential chain (environment variables)
+  : fromIni({ profile: 'main-profile' });
+
 const dynamodbClient = new DynamoDB({
   region: 'us-east-1',
-  credentials: fromIni({ profile: 'main-profile' }),
+  credentials,
 });
 const dynamodb = DynamoDBDocumentClient.from(dynamodbClient);
 
