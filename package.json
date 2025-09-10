@@ -24,6 +24,9 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@aws-sdk/client-ssm": "^3.886.0",
+    "@middy/core": "^6.4.5",
+    "@middy/ssm": "^6.4.5",
     "aws-cdk-lib": "2.201.0",
     "aws4fetch": "^1.0.20",
     "chance": "^1.1.13",

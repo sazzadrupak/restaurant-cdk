@@ -8,11 +8,6 @@ import { DatabaseStack } from './constructs/database-stack.js';
 const app = new App();
 let stageName = app.node.tryGetContext('stageName') || 'dev'; // Default to 'dev' if not specified
 
-if (!stageName) {
-  console.warn('No stage specified, defaulting to "dev".');
-  stageName = 'dev';
-}
-
 const dbStack = new DatabaseStack(app, `DatabaseStack-${stageName}`, {
   stageName,
 });
@@ -22,6 +17,7 @@ const cognitoStack = new CognitoStack(app, `CognitoStack-${stageName}`, {
 });
 
 new ApiStack(app, `ApiStack-${stageName}`, {
+  serviceName: 'workshop-sazzad',
   stageName,
   restaurantsTable: dbStack.restaurantsTable,
   cognitoUserPool: cognitoStack.cognitoUserPool,

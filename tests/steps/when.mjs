@@ -23,7 +23,7 @@ const viaHandler = async (event, functionName) => {
 };
 
 const viaHttp = async (relPath, method = 'GET', options) => {
-  const url = `${process.env.ApiUrl}/${relPath}`;
+  const url = `${process.env.ApiUrl}${relPath}`;
   console.info(`Invoking ${method} ${url}...`);
 
   const body = _.get(options, 'body');
