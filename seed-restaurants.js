@@ -69,6 +69,11 @@ const putReqs = restaurants.map((x) => ({
   },
 }));
 
+console.log(
+  'Restaurants table name: ',
+  process.env.restaurants_table,
+  JSON.stringify(credentials, null, 2)
+);
 const cmd = new BatchWriteCommand({
   RequestItems: {
     [process.env.restaurants_table]: putReqs,
