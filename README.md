@@ -14,3 +14,5 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app. The build ste
 By default, SSM Parameter Store doesn't charge you for usage. On the flip side, it restricts you to a measly 40 ops/second. This is often not enough in a production environment, especially if functions need to load, and periodically refresh their configs from SSM Parameter Store.
 
 Fortunately, you can significantly raise this throughput limit by, going to the SSM Parameter Store console, go to the Settings tab, and click Set Limit.
+
+\*\*\*Remember to create the ssm parameters for both dev and dev-ci stage. `/workshop-sazzad/dev/get-restaurants/config` & `/workshop-sazzad/dev/search-restaurants/config`. Otherwise the test cases running in the CI will fail.
