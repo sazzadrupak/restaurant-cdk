@@ -12,7 +12,6 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 export class ApiStack extends Stack {
   constructor(scope, id, props) {
     super(scope, id, props);
-
     const api = new RestApi(this, `${props.stageName}-MyApi`, {
       deployOptions: {
         stageName: props.stageName,
@@ -53,7 +52,7 @@ export class ApiStack extends Stack {
       entry: 'functions/get-restaurants.mjs',
       environment: {
         service_name: props.serviceName,
-        stage_name: props.stageName,
+        ssm_stage_name: props.ssmStageName,
         restaurants_table: props.restaurantsTable.tableName,
       },
     });
@@ -64,7 +63,7 @@ export class ApiStack extends Stack {
         actions: ['ssm:GetParameters*'],
         resources: [
           Fn.sub(
-            `arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.stageName}/get-restaurants/config`
+            `arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.ssmStageName}/get-restaurants/config`
           ),
         ],
       })
@@ -79,7 +78,7 @@ export class ApiStack extends Stack {
         entry: 'functions/search-restaurants.mjs',
         environment: {
           service_name: props.serviceName,
-          stage_name: props.stageName,
+          ssm_stage_name: props.ssmStageName,
           restaurants_table: props.restaurantsTable.tableName,
         },
       }
@@ -91,7 +90,7 @@ export class ApiStack extends Stack {
         actions: ['ssm:GetParameters*'],
         resources: [
           Fn.sub(
-            `arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.stageName}/search-restaurants/config`
+            `arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.ssmStageName}/search-restaurants/config`
           ),
         ],
       })
@@ -116,7 +115,7 @@ export class ApiStack extends Stack {
     api.root.addMethod('GET', getIndexLambdaIntegration);
     const restaurantsResource = api.root.addResource('restaurants');
     restaurantsResource.addMethod('GET', getRestaurantsLambdaIntegration, {
-      authorizationType: AuthorizationType.IAM, // Use IAM authorization for the restaurants endpoint
+      authorizationType: AuthorizationType.IAM,
     });
     restaurantsResource
       .addResource('search')
@@ -140,7 +139,6 @@ export class ApiStack extends Stack {
 
     new CfnOutput(this, 'ApiUrl', {
       value: api.url,
-      description: 'The URL of the API Gateway',
     });
 
     new CfnOutput(this, 'CognitoServerClientId', {
