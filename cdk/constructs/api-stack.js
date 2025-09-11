@@ -1,4 +1,4 @@
-import { CfnOutput, Fn, Stack } from 'aws-cdk-lib';
+import { CfnOutput, CfnParameter, Fn, Stack } from 'aws-cdk-lib';
 import {
   AuthorizationType,
   CfnAuthorizer,
@@ -13,6 +13,12 @@ import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 export class ApiStack extends Stack {
   constructor(scope, id, props) {
     super(scope, id, props);
+
+    new CfnParameter(this, 'KmsArnParameter', {
+      default: `/${props.serviceName}/${props.ssmStageName}/kmsArn`,
+      type: 'AWS::SSM::Parameter::Value<String>',
+    });
+
     const api = new RestApi(this, `${props.stageName}-MyApi`, {
       deployOptions: {
         stageName: props.stageName,
@@ -93,7 +99,17 @@ export class ApiStack extends Stack {
           Fn.sub(
             `arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.ssmStageName}/serviceQuotas`
           ),
+          Fn.sub(
+            `arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.ssmStageName}/search-restaurants/secretString`
+          ),
         ],
+      })
+    );
+    searchRestaurantsFunction.role.addToPrincipalPolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ['kms:Decrypt'],
+        resources: [Fn.ref('KmsArnParameter')],
       })
     );
 

@@ -21,4 +21,6 @@ Use `export AWS_PROFILE=main-profile` and `export AWS_REGION=us-east-1` before d
 
 AWS publishes a number of public parameters inside the SSM Parameter Store, things like AMI ARNs, etc. This is a useful way to communicate relevant data to the consumers of your service. And while we cannot publish public parameters to SSM Parameter Store, we can still take inspiration from this approach and share relevant information about our service with others (that reside in the same AWS account) - e.g. the service's root URL and operational constraints such as the max no. of restaurants that can be returned in a search result, etc.
 
-The crazy thing is that CloudFormation doesn't currently support SecureString parameters...So there's no built-in way to create SecureString parameters with the CDK. But you can install the cdk-secure-string-parameter package or create a custom resource yourself to create SecureString parameters in SSM.
+The crazy thing is that CloudFormation doesn't currently support SecureString parameters...So there's no built-in way to create SecureString parameters with the CDK. But you can install the cdk-secure-string-parameter package or create a custom resource yourself to create SecureString parameters in SSM. Switch to higher throughput of ssm if you need more than 40 ops/s. Or, you can store the variable in dynamodb.
+
+Have lambda function fetch and decrypt the parameters at runtime during cold start.
