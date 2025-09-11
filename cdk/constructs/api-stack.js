@@ -8,6 +8,7 @@ import {
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 
 export class ApiStack extends Stack {
   constructor(scope, id, props) {
@@ -63,7 +64,7 @@ export class ApiStack extends Stack {
         actions: ['ssm:GetParameters*'],
         resources: [
           Fn.sub(
-            `arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.ssmStageName}/get-restaurants/config`
+            `arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.ssmStageName}/serviceQuotas`
           ),
         ],
       })
@@ -90,7 +91,7 @@ export class ApiStack extends Stack {
         actions: ['ssm:GetParameters*'],
         resources: [
           Fn.sub(
-            `arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.ssmStageName}/search-restaurants/config`
+            `arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.ssmStageName}/serviceQuotas`
           ),
         ],
       })
@@ -143,6 +144,26 @@ export class ApiStack extends Stack {
 
     new CfnOutput(this, 'CognitoServerClientId', {
       value: props.serverUserPoolClient.userPoolClientId,
+    });
+
+    // From here, other services that want to use your service can find out the service URL by referencing this SSM parameter.
+    new StringParameter(this, 'ApiUrlParameter', {
+      parameterName: `/${props.serviceName}/${props.stageName}/service-url`,
+      stringValue: api.url,
+    });
+
+    new StringParameter(this, 'ServiceQuotas', {
+      parameterName: `/${props.serviceName}/${props.ssmStageName}/serviceQuotas`,
+      stringValue: JSON.stringify({
+        getRestaurants: {
+          defaultResults: 8,
+          maxResults: 100,
+        },
+        searchRestaurants: {
+          defaultResults: 8,
+          maxResults: 50,
+        },
+      }),
     });
   }
 }

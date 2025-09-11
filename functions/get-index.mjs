@@ -28,6 +28,10 @@ const aws = new AwsClient({
 const template = fs.readFileSync('static/index.html', 'utf-8');
 
 const getRestaurants = async () => {
+  console.info(
+    'Fetching restaurants from the restaurants API...',
+    restaurantsApiRoot
+  );
   const resp = await aws.fetch(restaurantsApiRoot);
   if (!resp.ok) {
     throw new Error('Failed to fetch restaurants: ' + resp.statusText);
@@ -36,8 +40,9 @@ const getRestaurants = async () => {
 };
 
 export const handler = async (event, context) => {
+  console.info('Getting index page...');
   const restaurants = await getRestaurants();
-  console.log(`found ${restaurants.length} restaurants`);
+  console.info(`found ${restaurants.length} restaurants`);
   const dayOfWeek = days[new Date().getDay()];
   const view = {
     awsRegion,

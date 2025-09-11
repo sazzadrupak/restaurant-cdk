@@ -16,14 +16,15 @@ const getRestaurants = async (count) => {
       Limit: count,
     })
   );
-  console.log(`found ${resp.Items.length} restaurants`);
   return resp.Items;
 };
 
 // Middy is a middleware engine that lets you run middleware (basically, bits of logic before and after your handler code runs). To use it you have to wrap the handler code
 // returns a wrapped function, which exposes a .use function, that lets you chain middlewares that you want to apply
 export const handler = middy(async (event, context) => {
-  const restaurants = await getRestaurants(context.config.defaultResults);
+  const restaurants = await getRestaurants(
+    context.serviceQuotas.getRestaurants.defaultResults
+  );
   const response = {
     statusCode: 200,
     body: JSON.stringify(restaurants),
@@ -36,7 +37,7 @@ export const handler = middy(async (event, context) => {
     cacheExpiry: 1 * 60 * 1000, // 1 mins
     setToContext: true,
     fetchData: {
-      config: `/${service_name}/${ssm_stage_name}/get-restaurants/config`,
+      serviceQuotas: `/${service_name}/${ssm_stage_name}/serviceQuotas`,
     },
   })
 );

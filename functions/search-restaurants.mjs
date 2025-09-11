@@ -22,7 +22,6 @@ const findRestaurantsByTheme = async (theme, count) => {
       ExpressionAttributeValues: { ':theme': theme },
     })
   );
-  console.log(`found ${resp.Items.length} restaurants`);
   return resp.Items;
 };
 
@@ -31,7 +30,7 @@ export const handler = middy(async (event, context) => {
   const theme = req.theme;
   const restaurants = await findRestaurantsByTheme(
     theme,
-    context.config.defaultResults
+    context.serviceQuotas.searchRestaurants.defaultResults
   );
   const response = {
     statusCode: 200,
@@ -45,7 +44,7 @@ export const handler = middy(async (event, context) => {
     cacheExpiry: 1 * 60 * 1000, // 1 mins
     setToContext: true,
     fetchData: {
-      config: `/${service_name}/${ssm_stage_name}/search-restaurants/config`,
+      serviceQuotas: `/${service_name}/${ssm_stage_name}/serviceQuotas`,
     },
   })
 );
