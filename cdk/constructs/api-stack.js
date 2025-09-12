@@ -3,6 +3,7 @@ import {
   AuthorizationType,
   CfnAuthorizer,
   LambdaIntegration,
+  Model,
   RestApi,
 } from 'aws-cdk-lib/aws-apigateway';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
@@ -113,6 +114,25 @@ export class ApiStack extends Stack {
       })
     );
 
+    // Define a model for the search request body
+    const searchRestaurantsRequestModel = new Model(
+      this,
+      'SearchRestaurantsRequestModel',
+      {
+        restApi: api,
+        contentType: 'application/json',
+        modelName: 'SearchRestaurantsRequestModel',
+        schema: {
+          type: 'object',
+          properties: {
+            theme: { type: 'string' },
+            count: { type: 'integer', minimum: 1, maximum: 50 },
+          },
+          required: ['theme'],
+        },
+      }
+    );
+
     const getIndexLambdaIntegration = new LambdaIntegration(getIndexFunction);
     const getRestaurantsLambdaIntegration = new LambdaIntegration(
       getRestaurantsFunction
@@ -140,6 +160,9 @@ export class ApiStack extends Stack {
         authorizationType: AuthorizationType.COGNITO,
         authorizer: {
           authorizerId: cognitoAuthorizer.ref,
+        },
+        requestModels: {
+          'application/json': searchRestaurantsRequestModel,
         },
       });
 

@@ -24,3 +24,22 @@ AWS publishes a number of public parameters inside the SSM Parameter Store, thin
 The crazy thing is that CloudFormation doesn't currently support SecureString parameters...So there's no built-in way to create SecureString parameters with the CDK. But you can install the cdk-secure-string-parameter package or create a custom resource yourself to create SecureString parameters in SSM. Switch to higher throughput of ssm if you need more than 40 ops/s. Or, you can store the variable in dynamodb.
 
 Have lambda function fetch and decrypt the parameters at runtime during cold start.
+
+It's easy to write a custom rotation cron job for SSM parameter.
+
+Before running test cases (locally or CI/CD), you must create the following:
+
+`/workshop-sazzad/dev-ci/search-restaurants/secretString`
+`/workshop-sazzad/dev/search-restaurants/secretString`
+`/workshop-sazzad/dev-ci/kmsArn`
+`/workshop-sazzad/dev/kmsArn`
+
+For serverful resources, you should share them instead instead of creating a copy in each account and let the envs in each account to use it. Deploy serverful resources in shared infra in cloud formation template.
+
+Artillery is a load test tool allows to test load against HTTP or websocket.
+Locust is also a load testing tool support distributed load testing.
+Include any asynchronous parts as part of the load test to make sure they too can handle increased load.
+
+I case of JavaScript, you can reference the shared libraries between different services through symlinks, and then resolve them at the deployment time using bundlers like Webpack.
+
+SCP restricts user from doing something, not enabling.
