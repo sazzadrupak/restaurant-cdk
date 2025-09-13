@@ -43,3 +43,21 @@ Include any asynchronous parts as part of the load test to make sure they too ca
 I case of JavaScript, you can reference the shared libraries between different services through symlinks, and then resolve them at the deployment time using bundlers like Webpack.
 
 SCP restricts user from doing something, not enabling.
+
+Why CloudFront caching is better than API Gateway caching:
+Cost Efficiency:
+
+CloudFront: Pay only for data transfer and requests
+API Gateway cache: Hourly charges ($14-$1700/month depending on size)
+Global Distribution:
+
+CloudFront: Caches at 400+ edge locations worldwide
+API Gateway: Caches only in the deployed region
+Better Performance:
+
+CloudFront: Serves from edge locations closer to users
+API Gateway: All requests still go to your API region
+More Flexible Cache Control:
+
+CloudFront: Fine-grained cache behaviors per path
+API Gateway: Limited cache key options

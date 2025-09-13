@@ -27,6 +27,11 @@ export const handler = middy(async (event, context) => {
   );
   const response = {
     statusCode: 200,
+    headers: {
+      // CloudFront respects these headers when you use CachePolicy.CACHING_OPTIMIZED or custom policies
+      'Cache-Control': 'public, max-age=300', // 5 minutes
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify(restaurants),
   };
 

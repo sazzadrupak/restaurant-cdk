@@ -41,8 +41,8 @@ export class CloudFrontStack extends Stack {
             cachePolicy: new CachePolicy(this, 'RestaurantsCachePolicy', {
               cachePolicyName: `${props.stageName}-RestaurantsCachePolicy`,
               defaultTtl: Duration.minutes(5),
-              minTtl: Duration.hours(1),
-              maxTtl: Duration.seconds(0),
+              minTtl: Duration.seconds(0),
+              maxTtl: Duration.hours(1),
               enableAcceptEncodingBrotlie: true,
               enableAcceptEncodingGzip: true,
             }),

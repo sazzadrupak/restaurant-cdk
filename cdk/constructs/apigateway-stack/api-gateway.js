@@ -40,11 +40,28 @@ export class ApiGateway extends Construct {
       deployOptions: {
         stageName: props.stageName,
         accessLogDestination: new LogGroupLogDestination(apiLogGroup),
-        accessLogFormat: AccessLogFormat.jsonWithStandardFields(),
+        accessLogFormat: AccessLogFormat.jsonWithStandardFields({
+          caller: true,
+          httpMethod: true,
+          ip: true,
+          protocol: true,
+          requestTime: true,
+          resourcePath: true,
+          responseLength: true,
+          status: true,
+          user: true,
+        }),
         loggingLevel: MethodLoggingLevel.INFO,
         dataTraceEnabled: true,
         throttlingRateLimit: 100, // requests per second
         throttlingBurstLimit: 200, // concurrent requests
+        metricsEnabled: true,
+        tracingEnabled: true,
+        cachingEnabled: false,
+        cacheClusterEnabled: false,
+        variables: {
+          environment: props.stageName,
+        },
       },
       endpointConfiguration: {
         types: [EndpointType.REGIONAL],
