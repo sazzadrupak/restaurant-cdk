@@ -1,0 +1,8 @@
+{
+  "body": "{\"theme\": \"cartoon\"}",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "httpMethod": "POST",
+  "path": "/restaurants/search"
+}

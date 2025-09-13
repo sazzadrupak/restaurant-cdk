@@ -175,8 +175,6 @@
             }
 
             idToken = session.idToken.jwtToken;
-            console.log('idToken: ' + idToken);
-            console.log('session validity: ' + session.isValid());
           });
 
           toggleSignOut(true);
@@ -274,7 +272,6 @@
             );
             /*Use the idToken for Logins Map when Federating User Pools with Cognito Identity or when passing through an Authorization Header to an API Gateway Authorizer*/
             idToken = result.idToken.jwtToken;
-            console.log('idToken : ' + idToken);
 
             signInDialog.dialog('close');
             toggleRegister(false);

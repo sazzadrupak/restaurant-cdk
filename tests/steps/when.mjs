@@ -27,7 +27,9 @@ const viaHttp = async (relPath, method = 'GET', options) => {
   console.info(`Invoking ${method} ${url}...`);
 
   const body = _.get(options, 'body');
-  const headers = {};
+  const headers = {
+    ..._.get(options, 'headers', {}), // Merge any additional headers
+  };
 
   const authHeader = _.get(options, 'auth');
 
@@ -45,7 +47,6 @@ const viaHttp = async (relPath, method = 'GET', options) => {
       secretAccessKey: credentials.secretAccessKey,
       sessionToken: credentials.sessionToken,
     });
-
     res = await aws.fetch(url, { method, headers, body });
   } else {
     res = await fetch(url, {
@@ -99,7 +100,13 @@ export const we_invoke_search_restaurants = async (theme, user) => {
       return await viaHandler({ body }, 'search-restaurants');
     case 'http':
       const auth = user.idToken;
-      return await viaHttp('restaurants/search', 'POST', { body, auth });
+      return await viaHttp('restaurants/search', 'POST', {
+        body,
+        auth,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
     default:
       throw new Error(`unsupported mode: ${mode}`);
   }

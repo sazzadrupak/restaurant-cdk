@@ -16,8 +16,7 @@ describe('Given an authenticated user', () => {
 
   describe(`When we invoke the POST /restaurants/search endpoint with theme 'cartoon'`, () => {
     it(`Should return an array of 4 restaurants`, async () => {
-      let res = await when.we_invoke_search_restaurants('cartoon', user);
-
+      const res = await when.we_invoke_search_restaurants('cartoon', user);
       expect(res.statusCode).toEqual(200);
       expect(res.body).toHaveLength(4);
 

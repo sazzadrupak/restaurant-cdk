@@ -8,10 +8,6 @@ const dynamodb = DynamoDBDocumentClient.from(dynamodbClient);
 const tableName = process.env.restaurants_table;
 
 const findRestaurantsByTheme = async (theme, count) => {
-  console.log(
-    `finding (up to ${count}) restaurants with the theme ${theme}...`
-  );
-
   const resp = await dynamodb.send(
     new ScanCommand({
       TableName: tableName,
@@ -24,16 +20,41 @@ const findRestaurantsByTheme = async (theme, count) => {
 };
 
 export const handler = wrap(async (event, context) => {
-  const req = JSON.parse(event.body);
-  const theme = req.theme;
-  const restaurants = await findRestaurantsByTheme(
-    theme,
-    context.serviceQuotas.searchRestaurants.defaultResults
-  );
-  const response = {
-    statusCode: 200,
-    body: JSON.stringify(restaurants),
-  };
+  try {
+    const theme = event.body?.theme;
 
-  return response;
+    // if (!theme) {
+    //   return {
+    //     statusCode: 400,
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify({ error: 'Theme is required' }),
+    //   };
+    // }
+
+    const defaultCount =
+      context.serviceQuotas?.searchRestaurants?.defaultResults || 8;
+    const restaurants = await findRestaurantsByTheme(theme, defaultCount);
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(restaurants),
+    };
+  } catch (error) {
+    console.error('Handler error:', error);
+    return {
+      statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        error: error.message || 'Internal server error',
+        stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined,
+      }),
+    };
+  }
 });

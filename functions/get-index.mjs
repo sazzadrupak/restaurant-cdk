@@ -40,9 +40,7 @@ const getRestaurants = async () => {
 };
 
 export const handler = async (event, context) => {
-  console.info('Getting index page...');
   const restaurants = await getRestaurants();
-  console.info(`found ${restaurants.length} restaurants`);
   const dayOfWeek = days[new Date().getDay()];
   const view = {
     awsRegion,
