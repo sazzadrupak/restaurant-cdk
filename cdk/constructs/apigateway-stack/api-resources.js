@@ -22,7 +22,13 @@ export class ApiResources extends Construct {
     );
 
     // Root resource - GET /
-    api.root.addMethod('GET', getIndexIntegration);
+    api.root.addMethod('GET', getIndexIntegration, {
+      // Override throttling for GET / endpoint
+      throttle: {
+        rateLimit: 50, // Lower limit for index page
+        burstLimit: 100,
+      },
+    });
 
     // Restaurants resource - /restaurants
     const restaurantsResource = api.root.addResource('restaurants');
@@ -30,6 +36,10 @@ export class ApiResources extends Construct {
     // GET /restaurants
     restaurantsResource.addMethod('GET', getRestaurantsIntegration, {
       authorizationType: AuthorizationType.IAM,
+      throttle: {
+        rateLimit: 200, // Higher limit for restaurant list
+        burstLimit: 400,
+      },
     });
 
     // POST /restaurants/search
@@ -45,6 +55,10 @@ export class ApiResources extends Construct {
       requestValidatorOptions: {
         validateRequestBody: true,
         validateRequestParameters: false,
+      },
+      throttle: {
+        rateLimit: 150, // Medium limit for search
+        burstLimit: 300,
       },
     });
   }

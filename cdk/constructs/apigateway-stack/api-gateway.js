@@ -43,6 +43,8 @@ export class ApiGateway extends Construct {
         accessLogFormat: AccessLogFormat.jsonWithStandardFields(),
         loggingLevel: MethodLoggingLevel.INFO,
         dataTraceEnabled: true,
+        throttlingRateLimit: 100, // requests per second
+        throttlingBurstLimit: 200, // concurrent requests
       },
       endpointConfiguration: {
         types: [EndpointType.REGIONAL],
