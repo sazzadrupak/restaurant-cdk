@@ -88,5 +88,10 @@ export class ApiGateway extends Construct {
     });
 
     this.apiLogicalId = scope.getLogicalId(this.api.node.defaultChild);
+
+    // Add this method to expose the stage ARN for WAF
+    this.getStageArnForWaf = (region) => {
+      return `arn:aws:apigateway:${region}::/restapis/${this.api.restApiId}/stages/${props.stageName}`;
+    };
   }
 }
