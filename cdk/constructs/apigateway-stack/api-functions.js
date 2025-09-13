@@ -58,7 +58,20 @@ export class ApiFunctions extends Construct {
           Fn.sub(
             `arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.ssmStageName}/serviceQuotas`
           ),
+          Fn.sub(
+            `arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.ssmStageName}/search-restaurants/secretString`
+          ),
+          Fn.sub(
+            `arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.ssmStageName}/cloudfront/url`
+          ),
         ],
+      })
+    );
+    this.getRestaurantsFunction.role.addToPrincipalPolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ['kms:Decrypt'],
+        resources: [Fn.ref(props.kmsArnParameter.logicalId)], // Use the passed parameter
       })
     );
 
