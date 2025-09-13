@@ -7,6 +7,7 @@ import { ApiFunctions } from './api-functions.js';
 import { ApiGateway } from './api-gateway.js';
 import { ApiModels } from './api-models.js';
 import { ApiResources } from './api-resources.js';
+// import { ApiAlarms } from './api-alarms.js';
 
 export class ApiStack extends Stack {
   constructor(scope, id, props) {
@@ -67,6 +68,18 @@ export class ApiStack extends Stack {
     //   apiGateway,
     //   stageName: props.stageName,
     //   region: this.region,
+    // });
+
+    // Create Alarms
+    // const alarms = new ApiAlarms(this, 'ApiAlarms', {
+    //   functions: {
+    //     getRestaurantsFunction: functions.getRestaurantsFunction,
+    //     searchRestaurantsFunction: functions.searchRestaurantsFunction,
+    //     getIndexFunction: functions.getIndexFunction,
+    //   },
+    //   api: apiGateway.api,
+    //   stageName: props.stageName,
+    //   alarmEmail: props.alarmEmail, // Pass this from app config
     // });
 
     // Outputs
