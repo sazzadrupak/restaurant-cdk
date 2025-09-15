@@ -6,5 +6,12 @@ export default defineConfig({
     environment: 'node',
     include: ['**/*.test.mjs'],
     exclude: ['**/node_modules/**', '**/dist/**'],
+    // Run tests sequentially
+    pool: 'forks',
+    poolOptions: {
+      forks: {
+        singleFork: true,
+      },
+    },
   },
 });
