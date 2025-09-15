@@ -22,7 +22,6 @@ const metrics = new Metrics({
 });
 const logger = new Logger({
   serviceName: service_name,
-  logLevel: 'INFO',
 });
 
 const getRestaurants = async (count) => {

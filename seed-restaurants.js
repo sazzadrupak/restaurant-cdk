@@ -76,5 +76,5 @@ const cmd = new BatchWriteCommand({
 });
 dynamodb
   .send(cmd)
-  .then(() => console.log('all done'))
+  .then(() => console.debug('all done'))
   .catch((err) => console.error(err));

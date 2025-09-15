@@ -1,8 +1,10 @@
+import { Logger } from '@aws-lambda-powertools/logger';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers'; // To resolve the current AWS credentials for aws4fetch package, we can use the @aws-sdk/credential-providers utility package from the AWS SDK v3.
 import { AwsClient } from 'aws4fetch'; // This package lets us sign HTTP requests using our AWS credentials. For it to work, it also needs the AWS credentials.
 import fs from 'fs';
 import Mustache from 'mustache';
 
+const logger = new Logger({ serviceName: process.env.service_name });
 const restaurantsApiRoot = process.env.restaurants_api;
 const cognitoUserPoolId = process.env.cognito_user_pool_id;
 const cognitoClientId = process.env.cognito_client_id;
@@ -28,12 +30,12 @@ const aws = new AwsClient({
 const template = fs.readFileSync('static/index.html', 'utf-8');
 
 const getRestaurants = async () => {
-  console.info(
+  logger.info(
     'Fetching restaurants from the restaurants API...',
     restaurantsApiRoot
   );
   const resp = await aws.fetch(restaurantsApiRoot);
-  console.info('Restaurants API response', resp.status, resp.statusText);
+  logger.info('Restaurants API response', resp.status, resp.statusText);
   if (!resp.ok) {
     throw new Error('Failed to fetch restaurants: ' + resp.statusText);
   }

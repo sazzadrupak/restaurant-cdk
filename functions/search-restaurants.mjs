@@ -24,7 +24,6 @@ const metrics = new Metrics({
 
 const logger = new Logger({
   serviceName: service_name,
-  logLevel: 'INFO',
 });
 
 const findRestaurantsByTheme = async (theme, count) => {
@@ -91,16 +90,6 @@ export const handler = combinedWrapper(
       metrics.addDimension('Operation', 'SearchRestaurants');
       const theme = event.body?.theme;
 
-      // if (!theme) {
-      //   return {
-      //     statusCode: 400,
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //     },
-      //     body: JSON.stringify({ error: 'Theme is required' }),
-      //   };
-      // }
-
       const defaultCount =
         context.serviceQuotas?.searchRestaurants?.defaultResults || 8;
       const restaurants = await findRestaurantsByTheme(theme, defaultCount);
@@ -114,28 +103,9 @@ export const handler = combinedWrapper(
         );
       }
 
-      // const validation = validateRestaurantArray(restaurants);
-      // if (!validation.isValid) {
-      //   logger.error('Restaurant data validation failed', {
-      //     errors: validation.errors,
-      //     restaurants,
-      //   });
-
-      //   return {
-      //     statusCode: 500,
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //     },
-      //     body: JSON.stringify({
-      //       error: 'Internal server error',
-      //       validationErrors:
-      //         ssm_stage_name === 'dev' ? validation.errors : undefined,
-      //     }),
-      //   };
-      // }
       return successResponse(restaurants);
     } catch (error) {
-      console.error('Handler error:', error);
+      logger.error('Handler error:', error);
       metrics.addMetric('SearchRestaurantsHandlerError', MetricUnit.Count, 1);
 
       return {

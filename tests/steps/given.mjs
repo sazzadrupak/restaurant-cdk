@@ -36,8 +36,6 @@ export const an_authenticated_user = async () => {
   });
   await cognito.send(createReq);
 
-  console.log(`[${email}] - user is created`);
-
   const req = new AdminInitiateAuthCommand({
     AuthFlow: 'ADMIN_NO_SRP_AUTH',
     UserPoolId: userpoolId,
@@ -48,8 +46,6 @@ export const an_authenticated_user = async () => {
     },
   });
   const resp = await cognito.send(req);
-
-  console.log(`[${email}] - initialised auth flow`);
 
   const challengeReq = new AdminRespondToAuthChallengeCommand({
     UserPoolId: userpoolId,
@@ -62,8 +58,6 @@ export const an_authenticated_user = async () => {
     },
   });
   const challengeResp = await cognito.send(challengeReq);
-
-  console.log(`[${email}] - responded to auth challenge`);
 
   return {
     username: email,

@@ -61,3 +61,24 @@ More Flexible Cache Control:
 
 CloudFront: Fine-grained cache behaviors per path
 API Gateway: Limited cache key options
+
+can deny Lambda the ability to create and write logs to CloudWatch Logs by adding this policy to your Lambda functions:
+
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Deny",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": [
+        "arn:aws:logs:*:*:*"
+      ]
+    }
+  ]
+}
+```

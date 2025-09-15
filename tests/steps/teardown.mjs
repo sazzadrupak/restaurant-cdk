@@ -11,6 +11,4 @@ export const an_authenticated_user = async (user) => {
     Username: user.username,
   });
   await cognito.send(req);
-
-  console.log(`[${user.username}] - user deleted`);
 };
