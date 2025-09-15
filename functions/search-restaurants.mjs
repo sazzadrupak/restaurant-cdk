@@ -2,7 +2,13 @@ import { Logger } from '@aws-lambda-powertools/logger';
 import { Metrics, MetricUnit } from '@aws-lambda-powertools/metrics';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
-import { wrapWithMetrics } from '../lib/wrapper.mjs';
+
+import { METRICS } from '../lib/metrics-constants.mjs';
+import {
+  getRestaurantsResponseSchema,
+  successResponse,
+} from '../lib/schemas/index.mjs';
+import { combinedWrapper } from '../lib/wrapper.mjs';
 
 const dynamodbClient = new DynamoDB();
 const dynamodb = DynamoDBDocumentClient.from(dynamodbClient);
@@ -37,16 +43,16 @@ const findRestaurantsByTheme = async (theme, count) => {
     // Record custom metrics
     const duration = Date.now() - startTime;
     metrics.addMetric(
-      'SearchRestaurantsDuration',
+      METRICS.SEARCH_RESTAURANTS.DURATION,
       MetricUnit.Milliseconds,
       duration
     );
     metrics.addMetric(
-      'SearchRestaurantsResults',
+      METRICS.SEARCH_RESTAURANTS.RESULTS,
       MetricUnit.Count,
       resp.Items.length
     );
-    metrics.addMetric('SearchRestaurantsSuccess', MetricUnit.Count, 1);
+    metrics.addMetric(METRICS.SEARCH_RESTAURANTS.SUCCESS, MetricUnit.Count, 1);
 
     // Track popular themes
     metrics.addMetric(`ThemeSearched_${theme}`, MetricUnit.Count, 1);
@@ -64,61 +70,89 @@ const findRestaurantsByTheme = async (theme, count) => {
 
     return resp.Items;
   } catch (error) {
-    metrics.addMetric('SearchRestaurantsError', MetricUnit.Count, 1);
+    metrics.addMetric(METRICS.SEARCH_RESTAURANTS.ERROR, MetricUnit.Count, 1);
     logger.error('Error searching restaurants', { error, theme });
     throw error;
   }
 };
 
-export const handler = wrapWithMetrics(async (event, context) => {
-  try {
-    // Record invocation metric
-    metrics.addMetric('SearchRestaurantsInvocation', MetricUnit.Count, 1);
+export const handler = combinedWrapper(
+  async (event, context) => {
+    try {
+      // Record invocation metric
+      metrics.addMetric(
+        METRICS.SEARCH_RESTAURANTS.INVOCATION,
+        MetricUnit.Count,
+        1
+      );
 
-    // Add dimensions to all metrics in this invocation
-    metrics.addDimension('Stage', ssm_stage_name || 'unknown');
-    metrics.addDimension('Operation', 'SearchRestaurants');
-    const theme = event.body?.theme;
+      // Add dimensions to all metrics in this invocation
+      metrics.addDimension('Stage', ssm_stage_name || 'unknown');
+      metrics.addDimension('Operation', 'SearchRestaurants');
+      const theme = event.body?.theme;
 
-    // if (!theme) {
-    //   return {
-    //     statusCode: 400,
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({ error: 'Theme is required' }),
-    //   };
-    // }
+      // if (!theme) {
+      //   return {
+      //     statusCode: 400,
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //     },
+      //     body: JSON.stringify({ error: 'Theme is required' }),
+      //   };
+      // }
 
-    const defaultCount =
-      context.serviceQuotas?.searchRestaurants?.defaultResults || 8;
-    const restaurants = await findRestaurantsByTheme(theme, defaultCount);
+      const defaultCount =
+        context.serviceQuotas?.searchRestaurants?.defaultResults || 8;
+      const restaurants = await findRestaurantsByTheme(theme, defaultCount);
 
-    // Track zero results (might indicate issues)
-    if (restaurants.length === 0) {
-      metrics.addMetric('SearchRestaurantsNoResults', MetricUnit.Count, 1);
+      // Track zero results (might indicate issues)
+      if (restaurants.length === 0) {
+        metrics.addMetric(
+          METRICS.SEARCH_RESTAURANTS.NO_RESULTS,
+          MetricUnit.Count,
+          1
+        );
+      }
+
+      // const validation = validateRestaurantArray(restaurants);
+      // if (!validation.isValid) {
+      //   logger.error('Restaurant data validation failed', {
+      //     errors: validation.errors,
+      //     restaurants,
+      //   });
+
+      //   return {
+      //     statusCode: 500,
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //     },
+      //     body: JSON.stringify({
+      //       error: 'Internal server error',
+      //       validationErrors:
+      //         ssm_stage_name === 'dev' ? validation.errors : undefined,
+      //     }),
+      //   };
+      // }
+      return successResponse(restaurants);
+    } catch (error) {
+      console.error('Handler error:', error);
+      metrics.addMetric('SearchRestaurantsHandlerError', MetricUnit.Count, 1);
+
+      return {
+        statusCode: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          error: error.message || 'Internal server error',
+          stack:
+            process.env.NODE_ENV !== 'production' ? error.stack : undefined,
+        }),
+      };
     }
-
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(restaurants),
-    };
-  } catch (error) {
-    console.error('Handler error:', error);
-    metrics.addMetric('SearchRestaurantsHandlerError', MetricUnit.Count, 1);
-
-    return {
-      statusCode: 500,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        error: error.message || 'Internal server error',
-        stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined,
-      }),
-    };
+  },
+  {
+    metrics,
+    responseSchema: getRestaurantsResponseSchema,
   }
-}, metrics);
+);

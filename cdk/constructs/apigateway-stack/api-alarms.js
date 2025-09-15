@@ -4,6 +4,7 @@ import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 import { Construct } from 'constructs';
+import { METRICS } from '../../../lib/metrics-constants.mjs';
 
 export class ApiAlarms extends Construct {
   constructor(scope, id, props) {
@@ -97,7 +98,7 @@ export class ApiAlarms extends Construct {
     // High error rate on search
     const searchErrorRateAlarm = new Alarm(this, 'SearchErrorRateAlarm', {
       metric: functions.searchRestaurantsFunction.metric(
-        'SearchRestaurantsError',
+        METRICS.SEARCH_RESTAURANTS.ERROR,
         {
           namespace,
           period: Duration.minutes(5),
@@ -114,7 +115,7 @@ export class ApiAlarms extends Construct {
     // No search results alarm (might indicate data issue)
     const noResultsAlarm = new Alarm(this, 'NoSearchResultsAlarm', {
       metric: functions.searchRestaurantsFunction.metric(
-        'SearchRestaurantsNoResults',
+        METRICS.SEARCH_RESTAURANTS.NO_RESULTS,
         {
           namespace,
           period: Duration.minutes(15),

@@ -33,6 +33,7 @@ const getRestaurants = async () => {
     restaurantsApiRoot
   );
   const resp = await aws.fetch(restaurantsApiRoot);
+  console.info('Restaurants API response', resp.status, resp.statusText);
   if (!resp.ok) {
     throw new Error('Failed to fetch restaurants: ' + resp.statusText);
   }
