@@ -110,3 +110,22 @@ export const we_invoke_search_restaurants = async (theme, user) => {
       throw new Error(`unsupported mode: ${mode}`);
   }
 };
+
+export const we_invoke_place_order = async (restaurantName, user) => {
+  const body = JSON.stringify({ restaurantName });
+  switch (mode) {
+    case 'handler':
+      return await viaHandler({ body }, 'place-order');
+    case 'http':
+      const auth = user.idToken;
+      return await viaHttp('orders', 'POST', {
+        body,
+        auth,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    default:
+      throw new Error(`unsupported mode: ${mode}`);
+  }
+};

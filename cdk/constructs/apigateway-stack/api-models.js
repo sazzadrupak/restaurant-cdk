@@ -23,5 +23,19 @@ export class ApiModels extends Construct {
         },
       }
     );
+
+    this.placeOrderRequestModel = new Model(this, 'PlaceOrderRequestModel', {
+      restApi: props.api,
+      contentType: 'application/json',
+      modelName: 'PlaceOrderRequestModel',
+      schema: {
+        type: 'object',
+        properties: {
+          restaurantName: { type: 'string' },
+        },
+        required: ['restaurantName'],
+        additionalProperties: false,
+      },
+    });
   }
 }

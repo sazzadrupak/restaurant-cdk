@@ -45,8 +45,8 @@ jobs:
         run: ./export-env.sh ApiStack-dev-ci us-east-1
 
       # apply seed data to dev-ci stage
-      - name: add seed data
-        run: node seed-restaurants.js
+      # - name: add seed data
+      #   run: node seed-restaurants.js
 
       # this runs the integration test against the 'dev-ci' stage
       # using the .env file that was captured earlier

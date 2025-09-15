@@ -44,6 +44,7 @@ export class ApiStack extends Stack {
       webUserPoolClient: props.webUserPoolClient,
       apiLogicalId: apiGateway.apiLogicalId,
       kmsArnParameter: kmsArnParameter, // Pass the parameter reference
+      orderEventBus: props.orderEventBus,
     });
 
     // Create Authorizer

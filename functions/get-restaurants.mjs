@@ -5,8 +5,10 @@ import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 
 import { METRICS } from '../lib/metrics-constants.mjs';
 import {
+  errorResponse,
   getRestaurantsResponseSchema,
   successResponse,
+  validateRestaurantArray,
 } from '../lib/schemas/index.mjs';
 import { combinedWrapper } from '../lib/wrapper.mjs';
 
@@ -82,25 +84,17 @@ export const handler = combinedWrapper(
     );
 
     // Validate restaurant data
-    // const validation = validateRestaurantArray(restaurants);
-    // if (!validation.isValid) {
-    //   logger.error('Restaurant data validation failed', {
-    //     errors: validation.errors,
-    //     restaurants,
-    //   });
+    const validation = validateRestaurantArray(restaurants);
+    if (!validation.isValid) {
+      logger.error('Restaurant data validation failed', {
+        errors: validation.errors,
+        restaurants,
+      });
 
-    //   return {
-    //     statusCode: 500,
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({
-    //       error: 'Internal server error',
-    //       validationErrors:
-    //         ssm_stage_name === 'dev' ? validation.errors : undefined,
-    //     }),
-    //   };
-    // }
+      return errorResponse(500, 'Internal server error', {
+        errors: validation.errors,
+      });
+    }
 
     return successResponse(restaurants, {
       // CloudFront respects these headers when you use CachePolicy.CACHING_OPTIMIZED or custom policies

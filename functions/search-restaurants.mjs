@@ -5,8 +5,10 @@ import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 
 import { METRICS } from '../lib/metrics-constants.mjs';
 import {
+  errorResponse,
   getRestaurantsResponseSchema,
   successResponse,
+  validateRestaurantArray,
 } from '../lib/schemas/index.mjs';
 import { combinedWrapper } from '../lib/wrapper.mjs';
 
@@ -101,6 +103,17 @@ export const handler = combinedWrapper(
           MetricUnit.Count,
           1
         );
+      }
+
+      const validation = validateRestaurantArray(restaurants);
+      if (!validation.isValid) {
+        logger.error('Restaurant data validation failed', {
+          errors: validation.errors,
+          restaurants,
+        });
+        return errorResponse(500, 'Internal server error', {
+          errors: validation.errors,
+        });
       }
 
       return successResponse(restaurants);

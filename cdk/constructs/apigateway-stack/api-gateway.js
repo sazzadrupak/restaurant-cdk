@@ -67,16 +67,14 @@ export class ApiGateway extends Construct {
         types: [EndpointType.REGIONAL],
       },
       defaultCorsPreflightOptions: {
-        allowOrigins: [
-          'https://d1m4dl58m6ya3c.cloudfront.net',
-          'http://localhost:3000',
-        ],
+        allowOrigins: ['https://d3d1j2jhax5wf3.cloudfront.net'],
         allowMethods: ['GET', 'POST', 'OPTIONS'],
         allowHeaders: [
           'Content-Type',
           'X-Amz-Date',
           'Authorization',
           'X-Api-Key',
+          'X-Amz-Security-Token',
         ],
         allowCredentials: true,
       },

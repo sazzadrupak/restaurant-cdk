@@ -32,6 +32,9 @@ export class ApiFunctions extends Construct {
         ),
         cognito_user_pool_id: props.cognitoUserPool.userPoolId,
         cognito_client_id: props.webUserPoolClient.userPoolClientId,
+        orders_api: Fn.sub(
+          `https://\${${props.apiLogicalId}}.execute-api.\${AWS::Region}.amazonaws.com/${props.stageName}/orders`
+        ),
       },
     });
 
@@ -119,6 +122,18 @@ export class ApiFunctions extends Construct {
         resources: [Fn.ref(props.kmsArnParameter.logicalId)], // Use the passed parameter
       })
     );
+
+    this.placeOrderFunction = new NodejsFunction(this, 'PlaceOrder', {
+      runtime: Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: 'functions/place-order.mjs',
+      environment: {
+        service_name: props.serviceName,
+        ssm_stage_name: props.ssmStageName,
+        bus_name: props.orderEventBus.eventBusName,
+      },
+    });
+    props.orderEventBus.grantPutEventsTo(this.placeOrderFunction);
 
     // Add API invoke policy to getIndex function
     const apiInvokePolicy = new PolicyStatement({

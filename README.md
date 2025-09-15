@@ -82,3 +82,9 @@ can deny Lambda the ability to create and write logs to CloudWatch Logs by addin
   ]
 }
 ```
+
+Two ways you can include SNS and Kinesis outputs in your end-to-end tests:
+
+by storing the messages in a DynamoDB table and then poll the table
+by broadcasting the messages to an API Gateway websocket and listening for the right messages to arrive
+Both approaches go well with using temporary CloudFormation stacks during CI/CD pipeline

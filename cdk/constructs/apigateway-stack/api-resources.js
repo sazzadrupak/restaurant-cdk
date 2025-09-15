@@ -20,6 +20,9 @@ export class ApiResources extends Construct {
     const searchRestaurantsIntegration = new LambdaIntegration(
       functions.searchRestaurantsFunction
     );
+    const placeOrderIntegration = new LambdaIntegration(
+      functions.placeOrderFunction
+    );
 
     // Root resource - GET /
     api.root.addMethod('GET', getIndexIntegration, {
@@ -59,6 +62,24 @@ export class ApiResources extends Construct {
       throttle: {
         rateLimit: 150, // Medium limit for search
         burstLimit: 300,
+      },
+    });
+
+    api.root.addResource('orders').addMethod('POST', placeOrderIntegration, {
+      authorizationType: AuthorizationType.COGNITO,
+      authorizer: {
+        authorizerId: authorizer.cognitoAuthorizer.ref,
+      },
+      requestModels: {
+        'application/json': models.placeOrderRequestModel,
+      },
+      requestValidatorOptions: {
+        validateRequestBody: true,
+        validateRequestParameters: false,
+      },
+      throttle: {
+        rateLimit: 100, // Limit for placing orders
+        burstLimit: 200,
       },
     });
   }
