@@ -1,9 +1,28 @@
 const APP_ROOT = '../../';
+import {
+  EventBridgeClient,
+  PutEventsCommand,
+} from '@aws-sdk/client-eventbridge';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { AwsClient } from 'aws4fetch';
 import _ from 'lodash';
 
 const mode = process.env.TEST_MODE;
+
+const viaEventBridge = async (busName, source, detailType, detail) => {
+  const eventBridge = new EventBridgeClient();
+  const putEventsCmd = new PutEventsCommand({
+    Entries: [
+      {
+        Source: source,
+        EventBusName: busName,
+        DetailType: detailType,
+        Detail: JSON.stringify(detail),
+      },
+    ],
+  });
+  await eventBridge.send(putEventsCmd);
+};
 
 const viaHandler = async (event, functionName) => {
   const { handler } = await import(`${APP_ROOT}functions/${functionName}.mjs`);
@@ -16,7 +35,7 @@ const viaHandler = async (event, functionName) => {
     'headers.content-type',
     'application/json'
   );
-  if (response.body && contentType === 'application/json') {
+  if (_.get(response, 'body') && contentType === 'application/json') {
     response.body = JSON.parse(response.body);
   }
   return response;
@@ -127,5 +146,23 @@ export const we_invoke_place_order = async (restaurantName, user) => {
       });
     default:
       throw new Error(`unsupported mode: ${mode}`);
+  }
+};
+
+export const we_invoke_notify_restaurant = async (event) => {
+  if (mode === 'handler') {
+    await viaHandler(event, 'notify-restaurant');
+  } else {
+    const busName = process.env.bus_name;
+    await viaEventBridge(
+      busName,
+      event.source,
+      event['detail-type'],
+      event.detail
+    );
+
+    // Wait a bit for EventBridge to process the event
+    // This is especially important on the first run due to cold starts
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 };

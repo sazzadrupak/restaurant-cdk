@@ -41,8 +41,12 @@ jobs:
         run: cdk deploy --all --context stageName=dev-ci --require-approval never
 
       # this generates the .env file for the 'dev-ci' stage
-      - name: export env
+      - name: export ApiStack-dev-ci env
         run: ./export-env.sh ApiStack-dev-ci us-east-1
+
+      # this generates the .env.events file for the 'dev-ci' stage
+      - name: export EventsStack-dev-ci env
+        run: ./export-env.sh EventsStack-dev-ci us-east-1 .env.events
 
       # apply seed data to dev-ci stage
       # - name: add seed data
