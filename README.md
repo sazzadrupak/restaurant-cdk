@@ -103,3 +103,16 @@ Idempotency - if the same batch is being processed again, either process it safe
 Lambda has introduced a way to handle these partial failures for SQS functions. In the event source mapping for this function, which configures how a function will process events from SQS, Kinesis, or DynamoDB, you can configure the function response types to include report batch item failures. Once you've done that, you'll be able to use the SQS functions return values to indicate which message IDs could not be processed. And lambda poller would know which message ids to delete from the queue. (https://school.theburningmonk.com/courses/take/production-ready-serverless-apr-2025-cdk/lessons/62669199-lecture-dealing-with-failures)
 
 Asynchronous lambda invocations have an at-least-once semantic. So on rare occasions, your function will receive the same invocation event more than once, EVEN if it had successfully processed it once before. Luckily, the Lambda PowerTools has an Idempotency capability that can help us with that. It uses a DynamoDB table to keep track of the events that we have processed. @aws-lambda-powertools/idempotency needs a DynamoDB Table to keep track of the idempotency tokens, so you need to add a table in database-stack.
+
+AWS added integration between the Fault Injection Service (FIS) and Lambda (for more details, check out this launch post). The integration doesn't require any code changes, but you need to add a FIS Lambda extension to your function. And you also need to set several environment variables to tell the FIS Lambda extension where to load its configuration and so on.
+An important metric to alert on when using Lambda's OnFailure destination is Lambda's DestinationDeliveryFailures metric. This tells you when the Lambda function is not able to deliver a message to the OnFailure destination.
+You should alert yourself when this metric is greater than 0. Although the Lambda function would retry the failed delivery, it will eventually give up after 24 hours and data would be lost.
+we should have two alarms for the "NotifyRestaurant" function:
+
+1. when Lambda's DestinationDeliveryFailures metric is > 0
+
+2. when the SQS queue's ApproximateNumberOfMessagesVisible metric is > 0
+
+When each function has its own OnFailure queue, it's easy to tell which one is experiencing problems. It's also easier to categorize the failures if they're related to temporal issues, such as when a downstream system is experiencing an outage. If you can correlate all N failed messages to the same temporal issue (because they all happened in the same time window), then it's easier to make the decision to reprocess them.
+
+But if all functions share the same OnFailure queue, then an alarm just means something is wrong, and you don't know which function. And if there are multiple messages in the queue, then you'd have to inspect all of them to figure out which functions are impacted. Not to mention it's harder to now if it's safe to reprocess all the failed messages. And there's no easy way for you to ONLY reprocess messages for a particular function because all the failed messages are in one queue.
