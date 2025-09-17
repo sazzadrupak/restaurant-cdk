@@ -88,3 +88,18 @@ Two ways you can include SNS and Kinesis outputs in your end-to-end tests:
 by storing the messages in a DynamoDB table and then poll the table
 by broadcasting the messages to an API Gateway websocket and listening for the right messages to arrive
 Both approaches go well with using temporary CloudFormation stacks during CI/CD pipeline
+
+When you process events with event-bridge and Lambda, you benefit from the built-in retry & DLQ.
+EventBridge is a async event source for lambda. You should prefer lambda destination over DLQ because lambda destination give much more information about the failed event.
+Kinesis is much more cost effective then EventBridge at ingeting large volume of data. Unlike EventBridge, where lambda function receies one event at a time, with kinesis, your function receives a batch of events.
+
+Kinesis/DynamoDB Stream based event sources - Lambda will not read any new records from the stream until the failed batch of records either expires or processed successfully. You need to consider partial failures and idempotency when processing Kinesis and DynamoDB streams with Lambda. Failed events should be retried, but the retries should not violate the realtime constraint.
+
+Idempotency - if the same batch is being processed again, either process it safely again or have a way to record the fact that they have been processed already, so you shouldn't process again. Some ways to ensure msgs are not processed multiple times.
+
+- remember the unique message id of the events that has been processed already as a cache in the function (dictionary). This option has some issue, watch this video: https://school.theburningmonk.com/courses/take/production-ready-serverless-apr-2025-cdk/lessons/62669199-lecture-dealing-with-failures
+- save ids in a DynamoDB
+
+Lambda has introduced a way to handle these partial failures for SQS functions. In the event source mapping for this function, which configures how a function will process events from SQS, Kinesis, or DynamoDB, you can configure the function response types to include report batch item failures. Once you've done that, you'll be able to use the SQS functions return values to indicate which message IDs could not be processed. And lambda poller would know which message ids to delete from the queue. (https://school.theburningmonk.com/courses/take/production-ready-serverless-apr-2025-cdk/lessons/62669199-lecture-dealing-with-failures)
+
+Asynchronous lambda invocations have an at-least-once semantic. So on rare occasions, your function will receive the same invocation event more than once, EVEN if it had successfully processed it once before. Luckily, the Lambda PowerTools has an Idempotency capability that can help us with that. It uses a DynamoDB table to keep track of the events that we have processed. @aws-lambda-powertools/idempotency needs a DynamoDB Table to keep track of the idempotency tokens, so you need to add a table in database-stack.

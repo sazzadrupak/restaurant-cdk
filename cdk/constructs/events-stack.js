@@ -39,6 +39,7 @@ export class EventsStack extends Stack {
           restaurant_notification_topic: restaurantNotificationTopic.topicArn,
           service_name: props.serviceName,
           ssm_stage_name: props.ssmStageName,
+          idempotency_table: props.idempotencyTable.tableName,
         },
       }
     );
@@ -46,6 +47,7 @@ export class EventsStack extends Stack {
     orderEventBus.grantPutEventsTo(notifyRestaurantFunction);
     // grants the notifyRestaurantFunction Lambda permission to publish messages to the restaurantNotificationTopic SNS topic
     restaurantNotificationTopic.grantPublish(notifyRestaurantFunction);
+    props.idempotencyTable.grantReadWriteData(notifyRestaurantFunction);
 
     // Listens for specific events on the orderEventBus and routes them to the notifyRestaurantFunction
     const rule = new Rule(this, 'OrderPlacedRule', {
